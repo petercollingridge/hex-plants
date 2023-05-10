@@ -5,19 +5,19 @@ class Cell {
     existingEdges = []
   ) {
     this.life = life;
-    this.id = life.cells.length;
+    this.id = life.cellCount++;
     this.r = r;
     this.nodes = [];
     this.edges = [];
     this.neighbours = [0,0,0,0,0,0];
-      
+
     this.center = new Particle(x, y);
-    this.life.particles.push(this.center);
-  
+    this.life.nodes.push(this.center);
+
     const edgeStrength = 0.05;
     const crossStrength = 0.2;
     const crossLength = r * Math.sqrt(3);
-    
+
     for (let i = 0; i < 6; i++) {
       if (existingNodes[i]) {
         this.nodes.push(existingNodes[i]);
@@ -28,12 +28,12 @@ class Cell {
         const py = y + r * Math.sin(angle);
         const p = new Particle(px, py)
         this.nodes.push(p);
-        
+
         // Add particle to parent
-        this.life.particles.push(p);
+        this.life.nodes.push(p);
       }
     }
-  
+
     // Add edge springs
     for (let i = 0; i < 6; i++) {
       if (existingEdges[i]) {
@@ -48,7 +48,7 @@ class Cell {
         this.life.springs.push(edge);
       }
     }
-    
+
     // Add structural springs
     for (let i = 0; i < 6; i++) {
       const p1 = this.nodes[i];
@@ -56,17 +56,17 @@ class Cell {
 
       // Spoke spring
       const e1 = new Spring(this.center, p1, crossStrength, r);
-      
+
       // Cross spring
       const e2 = new Spring(p1, p2, crossStrength, crossLength);
-      
+
       this.edges.push(e1);
       this.edges.push(e2);
       this.life.springs.push(e1);
       this.life.springs.push(e2);
     }
   }
-  
+
   getNode(n) {
     return this.nodes[n % 6];
   }
@@ -74,17 +74,17 @@ class Cell {
   getEdge(n) {
     return this.edges[n % 6];
   }
-  
+
   addNeighbour(cell, n) {
     this.neighbours[n] = cell;
     cell.neighbours[(n + 3) % 6] = this;
   }
-  
-  draw(n) {
+
+  draw() {
     fill(120, 160, 30, 120);
     stroke(20, 80, 0);
     beginShape();
-    this.nodes.forEach((p, i) => {
+    this.nodes.forEach((p) => {
       vertex(p.x, p.y);
     });
     endShape(CLOSE);
@@ -95,8 +95,8 @@ class Cell {
       noStroke();
       textFont('Arial');
       textAlign(CENTER, CENTER);
-      text(n, this.center.x, this.center.y + 1);
-      
+      text(this.id, this.center.x, this.center.y + 1);
+
       for (let i = 0; i < 6; i++) {
         const neighbour = this.neighbours[i];
         if (neighbour) {
@@ -110,7 +110,7 @@ class Cell {
       }
     }
   }
-  
+
   // Create a neighbouring cell along edge n
   addChild(n) {
     console.log(`Cell ${this.id} add child at ${n}`);
@@ -119,25 +119,25 @@ class Cell {
       console.log('Already a cell at ' + n);
       return;
     }
-    
+
     // Nodes ajoining edge n
     const p1 = this.getNode(n);
     const p2 = this.getNode(n + 1);
-    
+
     // Vector to new center is the sum of the vectors to
     // the two nodes along the target edge
     const v1 = p1.add(p2.sub(this.center));
-    
+
     if (v1.y > height - this.r) {
       return;
     }
-    
+
     const existingNodes = [0,0,0,0,0,0];
     const existingEdges = [0,0,0,0,0,0];
     existingNodes[(n + 4) % 6] = p1;
     existingNodes[(n + 3) % 6] = p2;
     existingEdges[(n + 3) % 6] = this.edges[n];
-    
+
     // Check for neighbour anti-clockwise from this new cell
     const neighbour1 = this.neighbours[(n + 5) % 6];
     if (neighbour1) {
@@ -146,7 +146,7 @@ class Cell {
       existingNodes[(n + 5) % 6] = sharedNode;
       existingEdges[(n + 4) % 6] = sharedEdge;
     }
-    
+
     // Check for neighbour clockwise from this new cell
     const neighbour2 = this.neighbours[(n + 1) % 6];
     if (neighbour2) {
@@ -155,7 +155,7 @@ class Cell {
       existingNodes[(n + 2) % 6] = sharedNode;
       existingEdges[(n + 2) % 6] = sharedEdge;
     }
-    
+
     const cell = new Cell(
       this.life,
       v1.x,
@@ -164,17 +164,17 @@ class Cell {
       existingNodes,
       existingEdges
     );
-    
+
     this.addNeighbour(cell, n);
     this.life.cells.push(cell);
-    
+
     if(neighbour1) {
       cell.addNeighbour(neighbour1, (n + 4) % 6);
     }
     if(neighbour2) {
       cell.addNeighbour(neighbour2, (n + 2) % 6);
     }
-    
+
     return cell;
   }
 
@@ -185,11 +185,11 @@ class Cell {
         freeSpaces.push(i);
       }
     }
-    
+
     if (freeSpaces.length === 0) {
       return false;
     }
-    
+
     return this.addChild(randFromArray(freeSpaces));
   }
 };
