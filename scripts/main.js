@@ -9,7 +9,7 @@ let physics;
 let cell;
 
 function setup() {
-  createCanvas(640, 360);
+  createCanvas(800, 500);
 
   physics = new VerletPhysics2D();
   const gravity = new GravityBehavior(new Vec2D(0, 1));
