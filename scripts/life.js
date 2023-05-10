@@ -2,25 +2,27 @@ class Life {
   constructor(x, y, r) {
     this.r = r;
     this.nodes = [];
-    this.springs = [];
+    this.edges = [];
     this.cells = [];
     this.grid = {};
     this.cellCount = 0;
 
-    const cell = new Cell(this, x, y, r);
-    this.cells.push(cell);
-    this.grid['0,0'] = cell;
+    new Cell(this, x, y, r, 0, 0);
   }
 
   draw() {
     if (debug === 0) {
       this.cells.forEach(p => p.draw());
     } else if (debug === 1) {
-      this.springs.forEach(p => p.draw());
+      this.edges.forEach(p => p.draw());
       this.nodes.forEach((p, i) => p.draw(i));
     } else {
       this.cells.forEach((p) => p.draw());
     }
+  }
+
+  getCellFromGrid(x, y) {
+    return this.grid[`${x},${y}`];
   }
 
   addChild(parent, position) {

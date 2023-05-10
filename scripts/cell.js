@@ -1,12 +1,21 @@
 class Cell {
   constructor(
     life, x, y, r,
+    gx, gy,
     existingNodes = [], 
     existingEdges = []
   ) {
     this.life = life;
     this.id = life.cellCount++;
     this.r = r;
+
+    // Coordinates in a virtual grid of the organism's cells
+    this.gx = gx;
+    this.gy = gy;
+
+    this.life.cells.push(this);
+    this.life.grid[`${gx},${gy}`] = this;
+
     this.nodes = [];
     this.edges = [];
     this.neighbours = [0,0,0,0,0,0];
@@ -45,7 +54,7 @@ class Cell {
         this.edges.push(edge);
 
         // Add springs to parent
-        this.life.springs.push(edge);
+        this.life.edges.push(edge);
       }
     }
 
@@ -62,8 +71,8 @@ class Cell {
 
       this.edges.push(e1);
       this.edges.push(e2);
-      this.life.springs.push(e1);
-      this.life.springs.push(e2);
+      this.life.edges.push(e1);
+      this.life.edges.push(e2);
     }
   }
 
@@ -113,7 +122,9 @@ class Cell {
 
   // Create a neighbouring cell along edge n
   addChild(n) {
-    console.log(`Cell ${this.id} add child at ${n}`);
+    if (debug) {
+      console.log(`Cell ${this.id} add child at ${n}`);
+    }
 
     if (this.neighbours[n]) {
       console.log('Already a cell at ' + n);
@@ -128,32 +139,40 @@ class Cell {
     // the two nodes along the target edge
     const v1 = p1.add(p2.sub(this.center));
 
+    // Don't add a cell if it would be under the ground
     if (v1.y > height - this.r) {
       return;
     }
 
-    const existingNodes = [0,0,0,0,0,0];
-    const existingEdges = [0,0,0,0,0,0];
-    existingNodes[(n + 4) % 6] = p1;
-    existingNodes[(n + 3) % 6] = p2;
-    existingEdges[(n + 3) % 6] = this.edges[n];
+    const [gx, gy] = getPosition(this.gx, this.gy, n);
 
-    // Check for neighbour anti-clockwise from this new cell
-    const neighbour1 = this.neighbours[(n + 5) % 6];
-    if (neighbour1) {
-      const sharedNode = neighbour1.getNode(n + 1);
-      const sharedEdge = neighbour1.getEdge(n + 1);
-      existingNodes[(n + 5) % 6] = sharedNode;
-      existingEdges[(n + 4) % 6] = sharedEdge;
+    // Find neighbours of new cell
+    const neighbours = [0,0,0,0,0,0];
+
+    for (let i = 0; i < 6; i++) {
+      if ((i + 3) % 6 === n) {
+        neighbours[i] = this;
+      } else {
+        const [nx, ny] = getPosition(gx, gy, i);
+        const neighbour = this.life.getCellFromGrid(nx, ny);
+        if (neighbour) {
+          neighbours[i] = neighbour;
+          // console.log(`Neighbour ${neighbour.id} at position ${i} (${nx}, ${ny})`)
+        }
+      }
     }
 
-    // Check for neighbour clockwise from this new cell
-    const neighbour2 = this.neighbours[(n + 1) % 6];
-    if (neighbour2) {
-      const sharedNode = neighbour2.getNode(n);
-      const sharedEdge = neighbour2.getEdge(n + 5);
-      existingNodes[(n + 2) % 6] = sharedNode;
-      existingEdges[(n + 2) % 6] = sharedEdge;
+    // Find which nodes and edges are shared with neighbouring cells
+    const existingNodes = [0,0,0,0,0,0];
+    const existingEdges = [0,0,0,0,0,0];
+
+    for (let i = 0; i < 6; i++) {
+      const neighbour = neighbours[i];
+      if (neighbour) {
+        existingNodes[i] = neighbour.getNode(i + 4);
+        existingNodes[(i + 1) % 6] = neighbour.getNode(i + 3);
+        existingEdges[i] =  neighbour.getEdge(n + 3);
+      }
     }
 
     const cell = new Cell(
@@ -161,18 +180,15 @@ class Cell {
       v1.x,
       v1.y,
       this.r,
+      gx, gy,
       existingNodes,
       existingEdges
     );
 
-    this.addNeighbour(cell, n);
-    this.life.cells.push(cell);
-
-    if(neighbour1) {
-      cell.addNeighbour(neighbour1, (n + 4) % 6);
-    }
-    if(neighbour2) {
-      cell.addNeighbour(neighbour2, (n + 2) % 6);
+    for (let i = 0; i < 6; i++) {
+      if (neighbours[i]) {
+        cell.addNeighbour(neighbours[i], i); 
+      }
     }
 
     return cell;
