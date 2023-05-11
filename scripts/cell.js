@@ -3,11 +3,16 @@ class Cell {
     life, x, y, r,
     gx, gy,
     existingNodes = [], 
-    existingEdges = []
+    existingEdges = [],
+    inputValues,
   ) {
+    this.r = r;
     this.life = life;
     this.id = life.cellCount++;
-    this.r = r;
+
+    this.inputValues = inputValues || randArray(4);
+    this.findGrowthRates(life.genes);
+    this.growth = 0;
 
     // Coordinates in a virtual grid of the organism's cells
     this.gx = gx;
@@ -117,6 +122,31 @@ class Cell {
             neighbour.center.y);
         }
       }
+    }
+  }
+
+  // Find rate of growing child cells in each direction
+  // Returns an 6x5 array of arrays
+  // Each item in the first array corresponds to a position
+  // Each item is an array where the first number if the growth rate at that position
+  // The next four numbers are the input valies for the child cell at that position
+  getGrowthRate(genes) {
+    const weights1 = genes.slice(0, 20);
+    const weights2 = genes.slice(20, 36);
+    const weights3 = genes.slice(36, 56);
+    const biases1 = genes.slice(56, 60);
+    const biases2 = genes.slice(60, 64);
+    const biases3 = genes.slice(64, 69);
+
+    this.growthRates = [];
+    this.childInputs = [];
+    for (let i = 0; i < 6; i++) {
+      const allInputs = this.inputValues.concat([i]);
+      const hiddenLayer1 = nextLayer(allInputs, biases1, weights1);
+      const hiddenLayer2 = nextLayer(hiddenLayer1, biases2, weights2);
+      const output = nextLayer(hiddenLayer2, biases3, weights3);
+      this.growthRates.push(Math.max(0, output[0]));
+      this.childInputs.push(output.slice(1));
     }
   }
 
