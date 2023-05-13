@@ -3,7 +3,7 @@ const { GravityBehavior } = toxi.physics2d.behaviors;
 const { Vec2D, Rect } = toxi.geom;
 
 const debug = 2;
-const running = 2;
+let running = true;
 
 let physics;
 let cell;
@@ -34,4 +34,10 @@ function draw() {
 
 function mouseClicked() {
   life.addRandChild();
+}
+
+function keyPressed() {
+  if (keyCode === 32) {
+    running = !running;
+  }
 }
