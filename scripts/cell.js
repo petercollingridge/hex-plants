@@ -10,10 +10,6 @@ class Cell {
     this.life = life;
     this.id = life.cellCount++;
 
-    this.inputValues = inputValues || randArray(4);
-    this.findGrowthRates(life.genes);
-    this.growth = 0;
-
     // Coordinates in a virtual grid of the organism's cells
     this.gx = gx;
     this.gy = gy;
@@ -79,6 +75,10 @@ class Cell {
       this.life.edges.push(e1);
       this.life.edges.push(e2);
     }
+
+    this.inputValues = inputValues || randArray(4);
+    this.findGrowthRates(life.genes);
+    this.growth = 0;
   }
 
   getNode(n) {
@@ -125,29 +125,61 @@ class Cell {
     }
   }
 
+  grow() {
+    if (this.growthDirection !== undefined) {
+      this.growth += this.growthRates[this.growthDirection];
+      console.log(this.growth);
+      if (this.growth > GROWTH_THRESHOLD) {
+        this.growth = 0;
+        this.addChild(this.growthDirection);
+        this.growthDirection = this.getGrowthDirections();
+      }
+    }
+  }
+
   // Find rate of growing child cells in each direction
   // Returns an 6x5 array of arrays
   // Each item in the first array corresponds to a position
   // Each item is an array where the first number if the growth rate at that position
   // The next four numbers are the input valies for the child cell at that position
-  getGrowthRate(genes) {
-    const weights1 = genes.slice(0, 20);
-    const weights2 = genes.slice(20, 36);
-    const weights3 = genes.slice(36, 56);
-    const biases1 = genes.slice(56, 60);
-    const biases2 = genes.slice(60, 64);
-    const biases3 = genes.slice(64, 69);
+  findGrowthRates(genes) {
+    const weights1 = genes.slice(0, 40);
+    const weights2 = genes.slice(40, 56);
+    const weights3 = genes.slice(56, 76);
+    const biases1 = genes.slice(76, 80);
+    const biases2 = genes.slice(80, 84);
+    const biases3 = genes.slice(84, 89);
 
     this.growthRates = [];
     this.childInputs = [];
     for (let i = 0; i < 6; i++) {
-      const allInputs = this.inputValues.concat([i]);
+      const allInputs = [0,0,0,0,0,0].concat(this.inputValues);
+      allInputs[i] = 1;   // Set value for this position to 1
+
       const hiddenLayer1 = nextLayer(allInputs, biases1, weights1);
       const hiddenLayer2 = nextLayer(hiddenLayer1, biases2, weights2);
       const output = nextLayer(hiddenLayer2, biases3, weights3);
       this.growthRates.push(Math.max(0, output[0]));
       this.childInputs.push(output.slice(1));
     }
+
+    this.growthDirection = this.getGrowthDirections();
+  }
+
+  getGrowthDirections() {
+    let growthDirection;
+    let maxRate = 0;
+
+    for (let i = 0; i < 6; i++) {
+      if (!this.neighbours[i]) {
+        if (this.growthRates[i] > maxRate) {
+          growthDirection = i;
+          maxRate = this.growthRates[i];
+        }
+      }
+    }
+
+    return growthDirection;
   }
 
   // Create a neighbouring cell along edge n
@@ -171,6 +203,7 @@ class Cell {
 
     // Don't add a cell if it would be under the ground
     if (v1.y > height - this.r) {
+      console.log('Cell hits ground');
       return;
     }
 
@@ -205,6 +238,7 @@ class Cell {
       }
     }
 
+    const inputValues = this.childInputs[n];
     const cell = new Cell(
       this.life,
       v1.x,
@@ -212,7 +246,8 @@ class Cell {
       this.r,
       gx, gy,
       existingNodes,
-      existingEdges
+      existingEdges,
+      inputValues
     );
 
     for (let i = 0; i < 6; i++) {
