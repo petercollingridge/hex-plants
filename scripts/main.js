@@ -5,13 +5,20 @@ const { Vec2D, Rect } = toxi.geom;
 const GROWTH_THRESHOLD = 100;
 const debug = 2;
 
+const GROUND = 200;
+
 let running = true;
 let physics;
 
 const drag = {
   applyBehavior: function(p) {
-    if (p.y > height - 100) {
-      p.scaleVelocity(0.1);
+    if (p.y > height - GROUND) {
+      // Below the soil don't fall due to gravity
+      p.addForce(new Vec2D(0, -2));
+      // Experience high drag
+      p.scaleVelocity(0.01);
+    } else {
+      p.scaleVelocity(0.99);
     }
   },
   configure: function(timeStep) {
@@ -39,7 +46,11 @@ function draw() {
     physics.update();
     life.update();
   }
+
   background(255);
+  fill(160, 100, 0);
+  rect(-1, height - GROUND, width + 2, GROUND + 1);
+
   life.draw();
 }
 
