@@ -7,7 +7,7 @@ class Life {
     this.grid = {};
     this.cellCount = 0;
 
-    this.genes = randArray(69);
+    this.genes = randArray(89);
 
     // Create a new cell (it will get added to the cells array)
     new Cell(this, x, y, r, 0, 0);
@@ -22,6 +22,10 @@ class Life {
     } else {
       this.cells.forEach((p) => p.draw());
     }
+  }
+
+  update() {
+    this.cells.forEach(cell => cell.grow());
   }
 
   getCellFromGrid(x, y) {
