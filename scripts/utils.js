@@ -55,3 +55,5 @@ function nextLayer(inputs, biases, weights) {
 
   return output;
 }
+
+const EPSILON = 1e-6;

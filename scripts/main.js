@@ -3,10 +3,9 @@ const { GravityBehavior } = toxi.physics2d.behaviors;
 const { Vec2D, Rect } = toxi.geom;
 
 const GROWTH_THRESHOLD = 100;
-const debug = 2;
+const debug = 0;
 
-const GROUND = 200;
-
+let GROUND;
 let running = true;
 let physics;
 let life;
@@ -29,6 +28,7 @@ let life;
 
 function setup() {
   createCanvas(800, 500);
+  GROUND = height - 200;
 
   physics = new Physics();
 
@@ -41,10 +41,14 @@ function setup() {
   // const bounds = new Rect(0, 0, width, height);
   // physics.setWorldBounds(bounds);
 
-  // life = new Life(width/2, height/2, 30);
+  life = new Life(width/2, height/2, 30);
 
-  new Particle(width/2, 20);
-  new Particle(width/2, height - GROUND/2);
+  // const a = new Particle(500, 20);
+  // const b = new Particle(550, 20);
+  // const c = new Particle(100, GROUND + 100);
+  // const d = new Particle(140, GROUND - 20);
+  // const s1 = new Spring(a, b, 0.1, 60);
+  // const s2 = new Spring(c, d, 0.1, 60);
 }
 
 function draw() {
@@ -55,15 +59,15 @@ function draw() {
 
   background(255);
   fill(160, 100, 0);
-  rect(-1, height - GROUND, width + 2, GROUND + 1);
+  rect(-1, GROUND, width + 2, height);
 
-  physics.particles.forEach((p) => p.draw());
+  // physics.particles.forEach((p) => p.draw());
 
-  // life.draw();
+  life.draw();
 }
 
 function mouseClicked() {
-  // life.addRandChild();
+  life.addRandChild();
 }
 
 function keyPressed() {

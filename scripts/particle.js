@@ -19,11 +19,10 @@
 //   }
 // }
 
-class Particle {
+class Particle extends VerletParticle2D {
   constructor(x, y) {
+    super(x, y);
     this.r = 6;
-    this.x = x;
-    this.y = y;
     this.dx = 0;
     this.dy = 0;
     physics.addParticle(this);
