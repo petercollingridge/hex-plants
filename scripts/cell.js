@@ -199,7 +199,10 @@ class Cell {
 
     // Vector to new center is the sum of the vectors to
     // the two nodes along the target edge
-    const v1 = p1.add(p2.sub(this.center));
+    const v1 = {
+      x: p1.x + p2.x - this.center.x,
+      y: p1.y + p2.y - this.center.y,
+    }
 
     // Don't add a cell if it would be under the ground
     if (v1.y > height - this.r) {

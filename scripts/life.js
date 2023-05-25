@@ -25,7 +25,7 @@ class Life {
   }
 
   update() {
-    this.cells.forEach(cell => cell.grow());
+    // this.cells.forEach(cell => cell.grow());
   }
 
   getCellFromGrid(x, y) {
