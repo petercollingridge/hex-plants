@@ -1,3 +1,5 @@
+const { Vec2D } = toxi.geom;
+
 const GROWTH_THRESHOLD = 100;
 const debug = 0;
 
