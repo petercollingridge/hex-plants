@@ -1,9 +1,9 @@
 class Physics {
   constructor() {
-    this.gravity = 0.1;
+    this.gravity = 0.08;
     this.gravityV = new Vec2D(0, this.gravity);
     this.drag = 0.02;
-    this.soilDrag = 0.95;
+    this.soilDrag = 0.98;
     this.particles = [];
     this.springs = [];
   }
@@ -48,7 +48,7 @@ class Physics {
       if (p.y > GROUND) {
         if (dy > 0) {
           // Soil pushes back against gravity
-          dy = Math.max(0, dy - 0.1);
+          dy = Math.max(0, dy - 0.05);
         }
       } else if (p.y + dy > GROUND) {
         // Hit the ground

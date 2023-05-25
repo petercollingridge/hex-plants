@@ -24,7 +24,7 @@ class Cell {
     this.center = new Particle(x, y);
     this.life.nodes.push(this.center);
 
-    const edgeStrength = 0.05;
+    const edgeStrength = 0.1;
     const crossStrength = 0.2;
     const crossLength = r * Math.sqrt(3);
 
